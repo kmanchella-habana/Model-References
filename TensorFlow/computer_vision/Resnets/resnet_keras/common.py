@@ -487,6 +487,7 @@ def define_habana_flags():
     flags.DEFINE_boolean("use_distributed_eval", default=False, help="Enables sharding of evaluation dataset and distributed evaluation")
     flags.DEFINE_boolean("use_keras_mixed_precision", default=False, help="If set to true, uses native keras mixed precision policy "
                          "instead of custom habana bf16 conversion pass")
+    flags.DEFINE_boolean("use_cifar", default = False, help="Download and use cifar-10 dataset for demo.")
     flags.DEFINE_enum("keras_applications_model", default=None,
                       enum_values=["ResNet50", "ResNet101", "ResNet152", "ResNet50V2", "ResNet101V2", "ResNet152V2"],
                       help="If set, uses the ResNet model from keras.applications")
