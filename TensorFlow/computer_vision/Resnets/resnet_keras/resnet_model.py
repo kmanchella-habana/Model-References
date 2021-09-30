@@ -228,7 +228,8 @@ def resnet50(num_classes,
              use_l2_regularizer=True,
              rescale_inputs=False,
              batch_norm_decay=0.9,
-             batch_norm_epsilon=1e-5):
+             batch_norm_epsilon=1e-5
+             image_size=224):
   """Instantiates the ResNet50 architecture.
   Args:
     num_classes: `int` number of classes for image classification.
@@ -240,7 +241,7 @@ def resnet50(num_classes,
   Returns:
       A Keras model instance.
   """
-  input_shape = (224, 224, 3)
+  input_shape = (image_size, image_size, 3)
   img_input = layers.Input(shape=input_shape, batch_size=batch_size)
   if rescale_inputs:
     # Hub image modules expect inputs in the range [0, 1]. This rescales these
