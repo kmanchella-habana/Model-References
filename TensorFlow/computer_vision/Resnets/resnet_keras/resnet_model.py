@@ -228,7 +228,7 @@ def resnet50(num_classes,
              use_l2_regularizer=True,
              rescale_inputs=False,
              batch_norm_decay=0.9,
-             batch_norm_epsilon=1e-5
+             batch_norm_epsilon=1e-5,
              image_size=224):
   """Instantiates the ResNet50 architecture.
   Args:
