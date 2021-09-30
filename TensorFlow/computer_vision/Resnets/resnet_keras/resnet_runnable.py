@@ -32,7 +32,7 @@ from TensorFlow.common.training import grad_utils
 from TensorFlow.common.training import standard_runnable
 from TensorFlow.common.training import utils
 from local_flags import core as flags_core
-from TensorFlow.computer_vision.common import imagenet_preprocessing
+from TensorFlow.computer_vision.common import imagenet_preprocessing, cifar_preprocessing
 from TensorFlow.computer_vision.Resnets.resnet_keras import common
 from TensorFlow.computer_vision.Resnets.resnet_keras import resnet_model
 from TensorFlow.computer_vision.Resnets.resnet_keras import keras_applications_resnet_model
@@ -78,15 +78,25 @@ class ResnetRunnable(standard_runnable.StandardTrainable,
           num_classes=imagenet_preprocessing.NUM_CLASSES,
           dtype=self.dtype,
           drop_remainder=True)
+    elif self.flags_obj.use_cifar:
+      print(">>>>>>>>>>>> We are using CIFAR-10")
+      self.input_fn = cifar_preprocessing.input_fn
     else:
       self.input_fn = imagenet_preprocessing.input_fn
 
 
     if self.flags_obj.keras_applications_model is None:
-      self.model = resnet_model.resnet50(
-          num_classes=imagenet_preprocessing.NUM_CLASSES,
-          batch_size=batch_size,
-          use_l2_regularizer=not flags_obj.single_l2_loss_op)
+      if self.flags_obj.use_cifar:
+        self.model = resnet_model.resnet50(
+            num_classes=cifar_preprocessing.NUM_CLASSES,
+            batch_size=batch_size,
+            use_l2_regularizer=not flags_obj.single_l2_loss_op,
+            image_size=cifar_preprocessing.DEFAULT_IMAGE_SIZE)
+      else:
+        self.model = resnet_model.resnet50(
+            num_classes=imagenet_preprocessing.NUM_CLASSES,
+            batch_size=batch_size,
+            use_l2_regularizer=not flags_obj.single_l2_loss_op)
     else:
       self.model = keras_applications_resnet_model.resnet(
           num_classes=imagenet_preprocessing.NUM_CLASSES,
@@ -141,13 +151,19 @@ class ResnetRunnable(standard_runnable.StandardTrainable,
 
   def build_train_dataset(self):
     """See base class."""
+    if self.flags_obj.use_cifar:
+      parse_record_fn = cifar_preprocessing.parse_record
+      data_dir = "/tmp/cifar10_data/cifar-10-batches-bin"
+    else:
+      parse_record_fn = imagenet_preprocessing.parse_record
+      data_dir = self.flags_obj.data_dir
     return utils.make_distributed_dataset(
         self.strategy,
         self.input_fn,
         is_training=True,
-        data_dir=self.flags_obj.data_dir,
+        data_dir=data_dir,
         batch_size=self.batch_size,
-        parse_record_fn=imagenet_preprocessing.parse_record,
+        parse_record_fn=parse_record_fn,
         datasets_num_private_threads=self.flags_obj
         .datasets_num_private_threads,
         dtype=common.get_dl_type(self.flags_obj),
@@ -156,13 +172,19 @@ class ResnetRunnable(standard_runnable.StandardTrainable,
 
   def build_eval_dataset(self):
     """See base class."""
+    if self.flags_obj.use_cifar:
+      parse_record_fn = cifar_preprocessing.parse_record
+      data_dir = "/tmp/cifar10_data/cifar-10-batches-bin"
+    else:
+      parse_record_fn = imagenet_preprocessing.parse_record
+      data_dir = self.flags_obj.data_dir
     return utils.make_distributed_dataset(
         self.strategy,
         self.input_fn,
         is_training=False,
-        data_dir=self.flags_obj.data_dir,
+        data_dir=data_dir,
         batch_size=self.batch_size,
-        parse_record_fn=imagenet_preprocessing.parse_record,
+        parse_record_fn=parse_record_fn,
         dtype=common.get_dl_type(self.flags_obj),
         experimental_preloading=self.flags_obj.experimental_preloading,
         use_distributed_eval=self.flags_obj.use_distributed_eval)
