@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import time
 from absl import logging
 import tensorflow as tf
 
@@ -109,6 +110,7 @@ def get_filenames(is_training, data_dir):
     os.system(
         f"python3 {d_path}/TensorFlow/computer_vision/common/cifar10_download_and_extract.py"
     )
+    time.sleep(5) #added to allow workers with different download speeds to be 'on the same page'
     assert tf.io.gfile.exists(data_dir), (
         "Run cifar10_download_and_extract.py first to download and extract the "
         "CIFAR-10 data."
